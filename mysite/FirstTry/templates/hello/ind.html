@@ -1,0 +1,31 @@
+<!-- Dans votre_template.html dans le répertoire templates de votre application Django -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats du scan Nmap</title>
+</head>
+<body>
+    <h1>Résultats du scan Nmap</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Port</th>
+                <th>État</th>
+                <th>Service</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for port_info in ports_info %}
+            <tr>
+                <td>{{ port_info.port }}</td>
+                <td>{{ port_info.state }}</td>
+                <td>{{ port_info.service }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

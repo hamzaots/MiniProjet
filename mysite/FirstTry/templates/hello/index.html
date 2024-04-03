@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanneur Nmap</title>
+</head>
+<body>
+    <h2>Spécifiez votre machine  et votre scan :</h2>
+    <form  method="post" action="{% url 'results' %}">
+        {% csrf_token %}
+        <label for="ip_address">Adresse IP :</label><br>
+        <input type="text" id="ip_address" name="ip_address"><br><br>
+
+        <label for="scan_type">Type de scan :</label><br>
+        <select id="scan_type" name="scan_type">
+            <option value="tcp_ping">TCP Ping Scan</option>
+            <option value="os_detection">Détection de l'OS</option>
+            <!-- Ajoutez d'autres options de scan si nécessaire -->
+        </select><br><br>
+
+        <input type="submit" value="Exécuter le scan">
+    </form>
+
+</body>
+</html>
