@@ -10,6 +10,8 @@ import subprocess
 import datetime 
 import time
 from asgiref.sync import sync_to_async
+from celery import shared_task
+import asyncio
 
 
 class new(forms.Form):
@@ -51,7 +53,7 @@ def form(request):
     return render(request, "hello/index.html", {'scan_form': scan_form})
     
 
-@sync_to_async
+@shared_task
 def your_view(request):
     
     data = dateasynForm(request.POST)
@@ -74,21 +76,23 @@ def your_view(request):
             scan_datetime = data.cleaned_data['start_time']
     
     
-            scheduled_periodic_scan(data['ip_address'].value(), scan_datetime , d)
+            
 
     # Chemin vers le fichier XML généré par Nmap
             xml_file_path = 'output2.xml'
 
-            Scan_Form = ScanForm(request.POST)
+#             Scan_Form = ScanForm(request.POST)
 
-            if Scan_Form.fields["scan_type"] == "tcp_ping":
+
+            if data["scan_type"].value() == "tcp_ping":
+                scheduled_periodic_scan(data['ip_address'].value(), scan_datetime , d)
         # Exécutez le scan Nmap et extrayez les informations du fichier XML
                 ports_info = parse_nmap_xml(request,xml_file_path)
         # Passez les informations extraites au template
                 return render(request, 'hello/ind.html', {'ports_info': ports_info})
             else :
-                ports_info = parse_nmap_xml(request,xml_file_path)
-                return render(request, 'hello/ind.html', {'ports_info': ports_info})
+                return HttpResponse("Hello world!")
+
 
 
 def parse_nmap_xml(request,xml_file):
@@ -123,7 +127,7 @@ def parse_nmap_xml(request,xml_file):
     
 #faire un scan périodique
     
-
+@shared_task
 def scheduled_periodic_scan(target, scan_datetime, period_days):
     current_datetime = datetime.datetime.now(datetime.timezone.utc)
     
@@ -149,7 +153,7 @@ def scheduled_periodic_scan(target, scan_datetime, period_days):
                 print("Next scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
                 print("Time left until next scan:", datetime.timedelta(seconds=time_diff))
                 # Wait until the next scan time arrives
-                time.sleep(time_diff)
+                asyncio.sleep(time_diff)
             else:
                 print("Error: Next scheduled scan time has already passed.")
                 break
