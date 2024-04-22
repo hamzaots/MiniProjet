@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from . import models
-from .models import Scan
+from .models import Scan , dateasyn
 from .models import Result
 from django import forms
 
@@ -14,3 +14,8 @@ class ResultatForm(ModelForm):
   class Meta:
     model = Result
     fields = ('vulnerability', 'severity','host_ip','host_name','time',)
+
+class dateasynForm(ModelForm) :
+  class Meta:
+    model = dateasyn  
+    fields = ('ip_address','scan_type','start_time', 'end_time','duration','recurrence',)  

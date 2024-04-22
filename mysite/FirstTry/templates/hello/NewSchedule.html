@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanneur Nmap</title>
+    <h2>Spécifiez votre machine et votre scan :</h2>
+    <form method="post" action="{% url 'your_view' %}">
+        {%csrf_token%}
+        <label for="ip_address">Adresse IP :</label><br>
+        <input type="text" id="ip_address" name="ip_address"><br><br>
+
+        <label for="scan_type">Type de scan :</label><br>
+        <select id="scan_type" name="scan_type">
+            <option value="tcp_ping">TCP Ping Scan</option>
+            <option value="os_detection">Détection de l'OS</option>
+            <!-- Ajoutez d'autres options de scan si nécessaire -->
+        </select><br><br>
+
+<input type="datetime-local" id="start_time" name="start_time" value="2024-04-20T19:48">
+<br>
+
+<label for="end_time">Exécution jusqu'au:</label>
+<input type="datetime-local" id="end_time" name="end_time" value=""> <br>
+
+<label for="duration">Durée:</label>
+<select id="duration" name="duration">
+<option value="entire">Opération entière</option>
+</select>
+<br>
+
+<label for="recurrence">Récurrence:</label>
+<select id="recurrence" name="recurrence">
+<option value="monthly">Mensuelle</option>
+<option value="daily">Quotidienne</option>
+<option value="weekly">Hebdomadaire</option>
+<option value="yearly">Annuelle</option>
+<option value="none">Une seule fois</option>
+</select>
+<br>
+
+<button type="submit">Enregistrer</button>
+<button type="reset">Annuler</button>
+</form>
+</body>
+</html>

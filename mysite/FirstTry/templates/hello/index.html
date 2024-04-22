@@ -4,10 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanneur Nmap</title>
+    <script>
+        // Function to set default values for date and time fields
+        function setDefaultDateTime() {
+            var now = new Date();
+            var day = ("0" + now.getDate()).slice(-2);
+            var month = ("0" + (now.getMonth() + 1)).slice(-2);
+            var year = now.getFullYear();
+            var hour = ("0" + now.getHours()).slice(-2);
+            var minute = ("0" + now.getMinutes()).slice(-2);
+
+            document.getElementById("next_scan_day").value = day;
+            document.getElementById("next_scan_month").value = month;
+            document.getElementById("next_scan_year").value = year;
+            document.getElementById("next_scan_hour").value = hour;
+            document.getElementById("next_scan_minute").value = minute;
+        }
+
+        // Call the function when the page is loaded
+        window.onload = function() {
+            setDefaultDateTime();
+        };
+    </script>
 </head>
 <body>
-    <h2>Spécifiez votre machine  et votre scan :</h2>
-    <form  method="post" action="{% url 'results' %}">
+    <h2>Spécifiez votre machine et votre scan :</h2>
+    <form method="post" action="{% url 'results' %}">
         {% csrf_token %}
         <label for="ip_address">Adresse IP :</label><br>
         <input type="text" id="ip_address" name="ip_address"><br><br>
@@ -19,8 +41,70 @@
             <!-- Ajoutez d'autres options de scan si nécessaire -->
         </select><br><br>
 
+        <label>Date et heure de prochaine scan :</label><br>
+        <label for="next_scan_day">Jour :</label>
+        <input type="number" id="next_scan_day" name="next_scan_day" min="1" max="31"><br><br>
+        
+        <label for="next_scan_month">Mois :</label>
+        <input type="number" id="next_scan_month" name="next_scan_month" min="1" max="12"><br><br>
+        
+        <label for="next_scan_year">Année :</label>
+        <input type="number" id="next_scan_year" name="next_scan_year" min="{{ now.year }}"><br><br>
+        
+        <label for="next_scan_hour">Heure :</label>
+        <input type="number" id="next_scan_hour" name="next_scan_hour" min="0" max="23"><br><br>
+        
+        <label for="next_scan_minute">Minute :</label>
+        <input type="number" id="next_scan_minute" name="next_scan_minute" min="0" max="59"><br><br>
+        
+        <label for="scan_period">Période pour le scan périodique (en jours) :</label><br>
+        <input type="number" id="scan_period" name="scan_period" min="1"><br><br>
+        
         <input type="submit" value="Exécuter le scan">
     </form>
+    <h1>Configuration d'analyse de vulnérabilité</h1>
+  <form action="submit.php" method="post">
+    <label for="name">Nom:</label>
+    <input type="text" id="name" name="name" value="Analyse du 20 avril 2024">
+    <br>
 
+    <label for="comment">Commentaire:</label>
+    <textarea id="comment" name="comment" rows="4"></textarea>
+    <br>
+
+    <label for="timezone">Fuseau horaire:</label>
+    <select id="timezone" name="timezone">
+      <option value="UTC">Coordinated Universal Time/UTC</option>
+      </select>
+    <br>
+
+    **Exécution de l'analyse**
+
+    <label for="start_time">Première exécution:</label>
+    <input type="datetime-local" id="start_time" name="start_time" value="2024-04-20T19:48">
+    <br>
+
+    <label for="end_time">Exécution jusqu'au:</label>
+    <input type="datetime-local" id="end_time" name="end_time" value=""> <br>
+
+    <label for="duration">Durée:</label>
+    <select id="duration" name="duration">
+      <option value="entire">Opération entière</option>
+      </select>
+    <br>
+
+    <label for="recurrence">Récurrence:</label>
+    <select id="recurrence" name="recurrence">
+      <option value="monthly">Mensuelle</option>
+      <option value="daily">Quotidienne</option>
+      <option value="weekly">Hebdomadaire</option>
+      <option value="yearly">Annuelle</option>
+      <option value="none">Une seule fois</option>
+    </select>
+    <br>
+
+    <button type="submit">Enregistrer</button>
+    <button type="reset">Annuler</button>
+  </form>
 </body>
 </html>
