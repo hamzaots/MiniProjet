@@ -1,8 +1,6 @@
 from django.forms import ModelForm
-from . import models
 from .models import Scan , dateasyn
 from .models import Result
-from django import forms
 
 
 class ScanForm(ModelForm):

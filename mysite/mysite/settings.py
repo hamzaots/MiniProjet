@@ -10,8 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
-
+from celery import shared_task 
+from django.shortcuts import render , redirect
+# from FirstTry.forms import dateasynForm # Assurez-vous d'importer les formulaires
+import xml.etree.ElementTree as ET
+# Create your views here.
+import subprocess
+import datetime 
+import time
+from asgiref.sync import sync_to_async
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,6 +40,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'celery',
+    'django_celery_beat',
     'FirstTry',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -107,7 +118,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
 
 USE_TZ = True
@@ -118,7 +128,27 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# set the celery broker url 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+  
+# set the celery result backend 
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+  
+# set the celery timezone 
+CELERY_TIMEZONE = 'UTC'
+
+
+# CELERY_BEAT_SCHEDULE = {
+    
+#     'scheduled_scan': {
+#         'task': 'FirstTry.tasks.scheduled_scan',
+#         'schedule': timedelta(seconds=60),  # Définir la fréquence de la tâche
+#         #'args': (arg1),  # Argument optionnel pour la tâche
+#     },
+# }
