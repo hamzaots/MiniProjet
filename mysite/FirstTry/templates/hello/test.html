@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <form method="post">
+    {% csrf_token %}
+    <label for="data">Data:</label>
+    <input type="text" name="data" id="data">
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

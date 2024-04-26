@@ -11,10 +11,11 @@ import datetime
 import time
 from asgiref.sync import sync_to_async
 import asyncio
-from celery import current_app
+from celery import Celery, current_app
 from celery import shared_task
+import datetime 
 
-
+app = Celery('mysite', backend='redis://localhost')
 class new(forms.Form):
     task= forms.CharField(label="new task")
     ana= forms.DecimalField(label="num")
@@ -51,17 +52,14 @@ def form(request):
    
     return render(request, "hello/index.html", {'scan_form': scan_form})
     
-
+from celery.result import AsyncResult
 def your_view(request):
     
     data = dateasynForm(request.POST)
-    target=data['ip_address'].value()
     print ('target **************')
-    current_app.send_task('FirstTry.tasks.scheduled_scan', args=[target])
+    d=0
     if data.is_valid():
-            d=0
-
-            duration = data['duration']
+            duration = data['duration'].value()
             if duration == "daily":
                 d = 1
             elif duration == "weekly":
@@ -70,21 +68,45 @@ def your_view(request):
                 d = 365
             elif duration == "monthly":
                 d = 30
+            elif duration == "none":
+                d=0
     #run_scan_view(request)
             scan_datetime = data.cleaned_data['start_time']
+
     # Chemin vers le fichier XML généré par Nmap
             xml_file_path = 'output2.xml'
 #             Scan_Form = ScanForm(request.POST)
             if data["scan_type"].value() == "tcp_ping":
-                scheduled_periodic_scan(data['ip_address'].value(), scan_datetime ,d)
-        # Exécutez le scan Nmap et extrayez les informations du fichier XML
-                ports_info = parse_nmap_xml(request,xml_file_path)
-        # Passez les informations extraites au template
-                return render(request, 'hello/ind.html', {'ports_info': ports_info})
+                current_datetime = datetime.datetime.now(datetime.timezone.utc)
+    
+                if scan_datetime > current_datetime:
+                    time_diff = (scan_datetime - current_datetime).total_seconds()
+                    time_diff_period = (scan_datetime+datetime.timedelta(days=d) - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
+                    print("Waiting for initial scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                    print("Time left:", datetime.timedelta(seconds=time_diff))
+                    target=data['ip_address'].value()
+                    print("target is : ",target)
+                    print("current:", current_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+                    ports_info_result = scheduled_periodic_scan.apply_async(args=(target, scan_datetime), countdown=time_diff)
+                    task_id = ports_info_result.id
+                    print("dfhfdhfghfgh")
+                    check(task_id) 
+                    return render(request,'hello/ind.html') # Redirect to status polling view
+                else:
+                    return HttpResponse("scan time depasse")
+               
+
             else :
                 return HttpResponse("Hello world!")
 
-
+def check(task_id):
+    
+    # Later, to access the result from the backend:
+    result = AsyncResult(task_id, app=app)
+    if result.ready():
+        return HttpResponse(result.get())  # Get the result from Redis
+    else:
+        return HttpResponse("Task still pending...")
 
 def parse_nmap_xml(request,xml_file):
     try:
@@ -115,38 +137,29 @@ def parse_nmap_xml(request,xml_file):
 #faire un scan périodique
     
 @shared_task
-def scheduled_periodic_scan(target, scan_datetime, period_days):
-    current_datetime = datetime.datetime.now(datetime.timezone.utc)
-    
-
-    if scan_datetime > current_datetime:
-        time_diff = (scan_datetime - current_datetime).total_seconds()
-        print("Waiting for initial scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-        print("Time left:", datetime.timedelta(seconds=time_diff))
-        print("current:", current_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+def scheduled_periodic_scan(target,scan_datetime):
+    # if scan_datetime > current_datetime:
+        # time_diff = (scan_datetime - current_datetime).total_seconds()
+        # print("Waiting for initial scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
+        # print("Time left:", datetime.timedelta(seconds=time_diff))
+        # print("current:", current_datetime.strftime("%Y-%m-%d %H:%M:%S"))
         # Wait until the initial scan time arrives
-        scheduled_periodic_scan.apply_async((target, scan_datetime, period_days), countdown=time_diff)
+        # scheduled_periodic_scan.apply_async((target, scan_datetime, period_days), countdown=time_diff)
         print("Initial scheduled scan started at:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        while True:
-            # Run the scan command
-            scan_command = ["nmap", "-oX", "output2.xml", target]
-            subprocess.run(scan_command)
-            print("Scan completed at:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            # Calculate next scan datetime
-            scan_datetime += datetime.timedelta(days=period_days)
-            # Calculate time difference until next scan
-            time_diff = (scan_datetime - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
-            if time_diff > 0:
-                print("Next scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-                print("Time left until next scan:", datetime.timedelta(seconds=time_diff))
-                # Wait until the next scan time arrives
-                scheduled_periodic_scan.apply_async((target, scan_datetime, period_days), countdown=time_diff)
-            else:
-                print("Error: Next scheduled scan time has already passed.")
-                break
-    else:
-        print("Waiting for initial scheduled scan at:", scan_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-        print("current:", current_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-        print("Scheduled time has already passed.")
+        scan_command = ["nmap", "-oX", "output2.xml", target]
+        subprocess.run(scan_command)
+        xml_file_path = 'output2.xml'
+        ports_info = parse_nmap_xml(xml_file_path)
+        return ports_info
+
+# @shared_task
+# def scheduled_periodic_scan_period(target):
+#             # Run the scan command
+#             scan_command = ["nmap", "-oX", "output2.xml", target]
+#             subprocess.run(scan_command)
+#             print("Scan completed at:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+#             # Calculate next scan datetime
+#             # Calculate time difference until next scan
+    
 
 

@@ -106,5 +106,26 @@
     <button type="submit">Enregistrer</button>
     <button type="reset">Annuler</button>
   </form>
+
+  <script>
+    function checkTaskStatus() {
+      $.ajax({
+        url: "{% url 'task_status' %}",
+        dataType: 'json',
+        success: function(data) {
+          if (data.status === 'done') {
+            window.location.href = '/results/' + data.result;  // Redirect to results page with result
+          } else if (data.status === 'pending') {
+            setTimeout(checkTaskStatus, 1000); // Check again after 1 second
+          }
+        }
+      });
+    }
+    
+    $(document).ready(function() {
+      checkTaskStatus();
+    });
+    </script>
+    
 </body>
 </html>
